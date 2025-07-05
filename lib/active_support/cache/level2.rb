@@ -1,3 +1,4 @@
+require 'active_support/isolated_execution_state'
 require 'active_support/cache'
 
 require 'active_support/version'
@@ -12,7 +13,7 @@ module ActiveSupport
       attr_reader :stores
 
       def initialize(store_options)
-        @stores = store_options.each_with_object({}) do |(name,options), h|
+        @stores = store_options.each_with_object({}) do |(name, options), h|
           h[name] = ActiveSupport::Cache.lookup_store(options)
         end
         @options = {}
@@ -26,10 +27,10 @@ module ActiveSupport
         @stores.each_value { |s| s.clear(*args) }
       end
 
-      def read_multi(*names)
+      def read_multi(*names, **options)
         result = {}
-        @stores.each do |_name,store|
-          data = store.read_multi(*names)
+        @stores.each do |_name, store|
+          data = store.read_multi(*names, **options)
           result.merge! data
           names -= data.keys
         end
@@ -44,31 +45,35 @@ module ActiveSupport
       protected
 
       def instrument(operation, key, options = nil)
-        super(operation, key, options) do |payload|
-          yield(payload).tap do
-            payload[:level] = current_level if payload
+        if block_given?
+          super(operation, key, options) do |payload|
+            yield(payload).tap do
+              payload[:level] = current_level if payload
+            end
           end
+        else
+          super(operation, key, options)
         end
       end
 
-      def read_entry(key, options)
+      def read_entry(key, **options)
         stores = selected_stores(options)
-        read_entry_from(stores, key, options)
+        read_entry_from(stores, key, **options)
       end
 
-      def write_entry(key, entry, options)
+      def write_entry(key, entry, **options)
         stores = selected_stores(options)
-        stores.each do |name, store|
-          result = store.send :write_entry, key, entry, options
+        stores.each do |_name, store|
+          result = store.send :write_entry, key, entry, **options
           return false unless result
         end
       end
 
-      def delete_entry(key, options)
+      def delete_entry(key, **options)
         selected_stores(options)
-        stores.map { |name,store|
-          store.send :delete_entry, key, options
-        }.all?
+        stores.map do |_name, store|
+          store.send :delete_entry, key, **options
+        end.all?
       end
 
       private
@@ -81,21 +86,21 @@ module ActiveSupport
         Thread.current[:level2_current] = name
       end
 
-      def read_entry_from(stores, key, options)
+      def read_entry_from(stores, key, **options)
         return if stores.empty?
 
-        (name,store), *other_stores = stores.to_a
+        (name, store), *other_stores = stores.to_a
         current_level! name
-        entry = store.send :read_entry, key, options
-        return entry if entry.present?
+        entry = store.send :read_entry, key, **options
+        return entry unless entry.nil?
 
-        entry = read_entry_from(other_stores, key, options)
-        unless entry.present?
+        entry = read_entry_from(Hash[other_stores], key, **options)
+        if entry.nil?
           current_level! :all
           return
         end
-        store.send :write_entry, key, entry, {}
-        
+        store.send :write_entry, key, entry, **{}
+
         entry
       end
 
@@ -106,10 +111,9 @@ module ActiveSupport
           @stores
         else
           current_level! only
-          @stores.select { |name,_| name == only }
+          @stores.select { |name, _| name == only }
         end
       end
-
     end
   end
 end
