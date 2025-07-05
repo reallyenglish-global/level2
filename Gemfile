@@ -9,6 +9,6 @@ gem 'appraisal'
 gem 'bundler'
 gem 'rake'
 gem 'rspec'
+gem 'debug'
 gem 'guard-rspec'
-gem 'pry'
 

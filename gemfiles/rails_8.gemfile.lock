@@ -1,5 +1,5 @@
 PATH
-  remote: .
+  remote: ..
   specs:
     level2 (0.3.0)
 
@@ -37,6 +37,16 @@ GEM
     drb (2.2.3)
     erb (5.0.1)
     ffi (1.17.2)
+    ffi (1.17.2-aarch64-linux-gnu)
+    ffi (1.17.2-aarch64-linux-musl)
+    ffi (1.17.2-arm-linux-gnu)
+    ffi (1.17.2-arm-linux-musl)
+    ffi (1.17.2-arm64-darwin)
+    ffi (1.17.2-x86-linux-gnu)
+    ffi (1.17.2-x86-linux-musl)
+    ffi (1.17.2-x86_64-darwin)
+    ffi (1.17.2-x86_64-linux-gnu)
+    ffi (1.17.2-x86_64-linux-musl)
     formatador (1.1.0)
     guard (2.19.1)
       formatador (>= 0.2.4)
@@ -113,7 +123,17 @@ GEM
     uri (1.0.3)
 
 PLATFORMS
+  aarch64-linux-gnu
+  aarch64-linux-musl
+  arm-linux-gnu
+  arm-linux-musl
+  arm64-darwin
   ruby
+  x86-linux-gnu
+  x86-linux-musl
+  x86_64-darwin
+  x86_64-linux-gnu
+  x86_64-linux-musl
 
 DEPENDENCIES
   activesupport (~> 8)
