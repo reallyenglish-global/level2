@@ -17,20 +17,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Dependencies
-        run: |
-          sudo apt install -yqq build-essential libpq-dev
-
       - name: Setup Ruby
         uses: ruby/setup-ruby@master
         with:
           ruby-version: 3.4.4
           bundler-cache: true
-
-      - name: Redis Server in GitHub Actions
-        uses: supercharge/redis-github-action@1.8.0
-        with:
-          redis-version: ${{ matrix.redis-version }}
 
       - name: Build and test with rspec
         env:
